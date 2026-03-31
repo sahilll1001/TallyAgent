@@ -1,4 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
+import http from 'http';
+import https from 'https';
 import { config } from './config';
 import { logger } from './logger';
 
@@ -36,31 +38,38 @@ export interface SyncEntry {
     attemptCount: number;
 }
 
-const http: AxiosInstance = axios.create({
+const httpAgent = new http.Agent({ family: 4 });
+const httpsAgent = new https.Agent({ family: 4 });
+
+const api: AxiosInstance = axios.create({
     baseURL: config.springApiUrl,
     headers: {
         'X-Agent-Key':  config.agentApiKey,
         'Content-Type': 'application/json',
     },
+    // Avoid IPv6-first connection stalls on networks where IPv6 routing is broken.
+    httpAgent,
+    httpsAgent,
+    proxy: false,
     timeout: 15_000,
 });
 
-http.interceptors.request.use(req => {
+api.interceptors.request.use(req => {
     logger.info(`→ ${req.method?.toUpperCase()} ${req.url}`);
     return req;
 });
 
 export async function fetchPending(): Promise<SyncEntry[]> {
-    const { data } = await http.get<SyncEntry[]>(
+    const { data } = await api.get<SyncEntry[]>(
         `/api/tally/pending?limit=${config.batchSize}`
     );
     return data;
 }
 
 export async function reportSynced(id: string): Promise<void> {
-    await http.post(`/api/tally/${id}/synced`);
+    await api.post(`/api/tally/${id}/synced`);
 }
 
 export async function reportFailed(id: string, error: string): Promise<void> {
-    await http.post(`/api/tally/${id}/failed`, { error });
+    await api.post(`/api/tally/${id}/failed`, { error });
 }

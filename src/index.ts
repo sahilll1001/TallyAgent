@@ -10,6 +10,36 @@ import { postToTally } from "./tallyClient";
 import { logger } from "./logger";
 import { config } from "./config";
 
+function formatError(err: any): string {
+  if (!err) return "unknown error";
+
+  const parts: string[] = [];
+  if (typeof err.message === "string" && err.message.trim()) {
+    parts.push(err.message.trim());
+  }
+  if (typeof err.code === "string" && err.code.trim()) {
+    parts.push(`code=${err.code.trim()}`);
+  }
+  if (typeof err.errno !== "undefined" && String(err.errno).trim()) {
+    parts.push(`errno=${String(err.errno).trim()}`);
+  }
+  if (err.response?.status) {
+    parts.push(`status=${String(err.response.status)}`);
+  }
+  if (typeof err.cause?.message === "string" && err.cause.message.trim()) {
+    parts.push(`cause=${err.cause.message.trim()}`);
+  }
+
+  if (parts.length > 0) return parts.join(" | ");
+
+  try {
+    const serialized = JSON.stringify(err);
+    if (serialized && serialized !== "{}") return serialized;
+  } catch {}
+
+  return String(err) || "unknown error";
+}
+
 function pick(...values: any[]): string {
   for (const value of values) {
     if (value === null || value === undefined) continue;
@@ -98,7 +128,7 @@ async function runCycle(): Promise<void> {
   try {
     entries = await fetchPending();
   } catch (err: any) {
-    logger.error(`Cannot reach Spring API - ${err.message}`);
+    logger.error(`Cannot reach Spring API - ${formatError(err)}`);
     return;
   }
 
