@@ -109,22 +109,38 @@ function parseDateToYmd(value: string | undefined): string | null {
   if (!value) return null;
   const trimmed = value.trim();
 
-  const ddMmYyyy = trimmed.match(/^(\d{2})-(\d{2})-(\d{4})/);
+  const ddMmYyyy = trimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{4})(?:\b|$)/);
   if (ddMmYyyy) {
     const [, dd, mm, yyyy] = ddMmYyyy;
-    return `${yyyy}${mm}${dd}`;
+    return toYmd(Number(yyyy), Number(mm), Number(dd));
   }
 
   const yyyymmdd = trimmed.match(/^(\d{4})(\d{2})(\d{2})$/);
-  if (yyyymmdd) return trimmed;
+  if (yyyymmdd) {
+    const [, yyyy, mm, dd] = yyyymmdd;
+    return toYmd(Number(yyyy), Number(mm), Number(dd));
+  }
 
-  const yyyyMmDd = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const yyyyMmDd = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
   if (yyyyMmDd) {
     const [, yyyy, mm, dd] = yyyyMmDd;
-    return `${yyyy}${mm}${dd}`;
+    return toYmd(Number(yyyy), Number(mm), Number(dd));
   }
 
   return null;
+}
+
+function toYmd(year: number, month: number, day: number): string | null {
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  const dt = new Date(Date.UTC(year, month - 1, day));
+  if (
+    dt.getUTCFullYear() !== year ||
+    dt.getUTCMonth() + 1 !== month ||
+    dt.getUTCDate() !== day
+  ) {
+    return null;
+  }
+  return `${year}${String(month).padStart(2, "0")}${String(day).padStart(2, "0")}`;
 }
 
 function todayTallyDate(): string {

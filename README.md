@@ -38,7 +38,7 @@ SPRING_API_URL=https://your-api-url
 AGENT_API_KEY=your-agent-key
 TALLY_URL=http://localhost:9000
 TALLY_COMPANY=Optimate
-TALLY_MIN_VOUCHER_DATE=31-03-2026
+TALLY_MIN_VOUCHER_DATE=AUTO
 POLL_INTERVAL_MS=5000
 BATCH_SIZE=5
 LOG_DIR=C:\TallyAgent\logs
@@ -46,7 +46,8 @@ LOG_DIR=C:\TallyAgent\logs
 
 Important:
 - `TALLY_MIN_VOUCHER_DATE` avoids Tally error when invoice date is older than current FY start.
-- Date format must be `DD-MM-YYYY` in `.env`.
+- Set `TALLY_MIN_VOUCHER_DATE=AUTO` to compute FY start automatically (`01-04-YYYY`).
+- You can still set a fixed date in `DD-MM-YYYY` when needed.
 
 ## 4) Run and test locally
 
@@ -238,7 +239,7 @@ Fix:
 
 ### Issue: `Date cannot be below the Financial Year beginning date`
 Fix:
-- Set `.env` `TALLY_MIN_VOUCHER_DATE=31-03-2026` (or your FY start date).
+- Set `.env` `TALLY_MIN_VOUCHER_DATE=AUTO` (or set a fixed `DD-MM-YYYY` FY start date).
 
 ### Issue: `Ledger ensured: null`
 Cause:
